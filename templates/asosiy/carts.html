@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'asosiy/base.html' %}
 {% load static %}
 {% block content %}
 
@@ -7,7 +7,7 @@
 		<div class="container">
 			<div class="breadcrumbs-main">
 				<ol class="breadcrumb">
-					<li><a href="index.html">Home</a></li>
+					<li><a href="{% url 'main' %}">Home</a></li>
 					<li class="active">Checkout</li>
 				</ol>
 			</div>
@@ -18,75 +18,48 @@
 	<div class="ckeckout">
 		<div class="container">
 			<div class="ckeck-top heading">
-				<h2>CHECKOUT</h2>
+				<h2>Savat</h2>
 			</div>
 			<div class="ckeckout-top">
 			<div class="cart-items">
-			 <h3>My Shopping Bag (3)</h3>
-				<script>$(document).ready(function(c) {
-					$('.close1').on('click', function(c){
-						$('.cart-header').fadeOut('slow', function(c){
-							$('.cart-header').remove();
-						});
-						});	  
-					});
-			   </script>
-			<script>$(document).ready(function(c) {
-					$('.close2').on('click', function(c){
-						$('.cart-header1').fadeOut('slow', function(c){
-							$('.cart-header1').remove();
-						});
-						});	  
-					});
-			   </script>
-			   <script>$(document).ready(function(c) {
-					$('.close3').on('click', function(c){
-						$('.cart-header2').fadeOut('slow', function(c){
-							$('.cart-header2').remove();
-						});
-						});	  
-					});
-			   </script>
-				
+			 <h3>Faol savatchalar</h3>				
 			<div class="in-check" >
 				<ul class="unit">
-					<li><span>Item</span></li>
-					<li><span>Product Name</span></li>		
-					<li><span>Unit Price</span></li>
-					<li><span>Delivery Details</span></li>
-					<li> </li>
+					<li><span>Maxsulotlar soni</span></li>
+					<li><span>Maxsulotlar narxi</span></li>		
+					<li><span>Maxsulotlarni ko'rish</span></li>		
 					<div class="clearfix"> </div>
 				</ul>
+				
+			</ul>
+			{% for cart in active %}
 				<ul class="cart-header">
-					<div class="close1"> </div>
-						<li class="ring-in"><a href="single.html" ><img src="images/c-1.jpg" class="img-responsive" alt=""></a>
-						</li>
-						<li><span class="name">Analog Watches</span></li>
-						<li><span class="cost">$ 290.00</span></li>
-						<li><span>Free</span>
-						<p>Delivered in 2-3 business days</p></li>
+						<li><span class="name">{{cart.quantity}}</span></li>
+						<li><span class="cost">{{cart.total_price}}</span></li>
+						<li><a href="{% url 'cart_detail' cart.id%}">Batafsil</a></li>
 					<div class="clearfix"> </div>
+					{% endfor %}
 				</ul>
-				<ul class=" cart-header1">
-					<div class="close2"> </div>
-						<li class="ring-in"><a href="single.html" ><img src="images/c-2.jpg" class="img-responsive" alt=""></a>
-						</li>
-						<li><span class="name">Analog Watches</span></li>
-						<li><span class="cost">$ 300.00</span></li>
-						<li><span>Free</span>
-						<p>Delivered in 2-3 business days</p></li>
-						<div class="clearfix"> </div>
+				
+			</div>
+			<h3>Nofaol savatchalar</h3>				
+			<div class="in-check" >
+				<ul class="unit">
+					<li><span>Maxsulotlar soni</span></li>
+					<li><span>Maxsulotlar narxi</span></li>		
+					<li><span >Batafsil</span></li>		
+					<div class="clearfix"> </div>
+					
 				</ul>
-				<ul class="cart-header2">
-					<div class="close3"> </div>
-						<li class="ring-in"><a href="single.html" ><img src="images/c-3.jpg" class="img-responsive" alt=""></a>
-						</li>
-						<li><span class="name">Analog Watches</span></li>
-						<li><span class="cost">$ 360.00</span></li>
-						<li><span>Free</span>
-						<p>Delivered in 2-3 business days</p></li>
-						<div class="clearfix"> </div>
+				{% for cart in in_active %}
+				<ul class="cart-header">
+						<li><span class="name">{{cart.quantity}}</span></li>
+						<li><span class="cost">{{cart.total_price}}</span></li>
+						<li><a href="{% url 'cart_detail' cart.id%}">Batafsil</a></li>
+					<div class="clearfix"> </div>
+					{% endfor %}
 				</ul>
+				
 			</div>
 			</div>  
 		 </div>

@@ -44,6 +44,9 @@ class Product(models.Model):
     @property 
     def is_active(self):
         return self.quantity > 0
+    
+    def __str__(self):
+        return self.name
 
 
 class ProductImage(models.Model):
@@ -78,7 +81,7 @@ class Card(models.Model):
     def total_price(self):
         result = 0
         for i in CardProduct.objects.filter(card_id=self.id):
-            result +=i.price
+            result +=(i.product.price)*i.quantity
         return result
 
 
@@ -94,3 +97,7 @@ class CardProduct(models.Model):
         else:
             result = self.product.price * self.quantity
         return result
+    
+
+
+    
