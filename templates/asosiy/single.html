@@ -21,17 +21,15 @@
 				<div class="sngl-top">
 					<div class="col-md-5 single-top-left">	
 						<div class="flexslider">
-							  <ul class="slides">
-								<li data-thumb="{% static 'asosiy/images/s-1.jpg' %}">
-									<div class="thumb-image"> <img src="{% static 'asosiy/images/s-1.jpg' %}" data-imagezoom="true" class="img-responsive" alt=""/> </div>
-								</li>
-								<li data-thumb="{% static 'asosiy/images/s-2.jpg' %}">
-									 <div class="thumb-image"> <img src="{% static 'asosiy/images/s-2.jpg' %}" data-imagezoom="true" class="img-responsive" alt=""/> </div>
-								</li>
-								<li data-thumb="{% static 'asosiy/images/s-3.jpg' %}">
-								   <div class="thumb-image"> <img src="{% static 'asosiy/images/s-3.jpg' %}" data-imagezoom="true" class="img-responsive" alt=""/> </div>
-								</li> 
-							  </ul>
+							<ul class="slides">
+								{% for image in images %}
+									<li data-thumb="{{ image.image.url }}">
+										<div class="thumb-image"> <img src="{{ image.image.url }}" data-imagezoom="true" class="img-responsive" alt=""/> </div>
+									</li>
+								{% endfor %}
+							</ul>
+							
+							
 						</div>
 						<!-- FlexSlider -->
 						<script src="{% static 'asosiy/js/imagezoom.js' %}"></script>
@@ -54,11 +52,9 @@
 					<h2>{{product.name}}</h2>
 						<div class="star-on">
 							<ul class="star-footer">
+								{% for i in range %}
 									<li><a href="#"><i> </i></a></li>
-									<li><a href="#"><i> </i></a></li>
-									<li><a href="#"><i> </i></a></li>
-									<li><a href="#"><i> </i></a></li>
-									<li><a href="#"><i> </i></a></li>
+									{% endfor %}
 								</ul>
 							<div class="review">
 								<a href="#"> 1 customer review </a>
@@ -81,49 +77,49 @@
 				<div class="tabs">
 					
 				</div>
-				
-{% for i in products %}
-	<!--product-starts-->
-				<div class="product" > 
-					<div class="container"  >
-						<div class="product-top" >
-							<div class="product-one" >
-								<div class="col-md-3 product-left" >
-									<div class="product-main simpleCart_shelfItem"  >
-										<a href="{% url 'detail' i.id%}" class="mask">
-											<img class="img-responsive zoom-img" src="{{i.baner_image.url }}" alt="" />
-										</a>
-										<div class="product-bottom">
-											<h3>{{ i.name }}</h3>
-											<p>{{ i.description }}</p>
-											{% if i.currency == 1 %}
-												<h4>
-													<a class="item_add" href="#"><i></i></a>
-													<span class="item_price">{{ i.price }} Dollar</span>
-												</h4>
-											{% else %}
-												<h4>
-													<a class="item_add" href="#"><i></i></a>
-													<span class="item_price">{{ i.price }} So'm</span>
-												</h4>
-											{% endif %}
-											<!-- Add more product details or buttons here -->
-										</div>
-									</div>
-									
-								</div>
-							</div>				
-						</div>
-					</div>
-				</div>
-	<!--product-end-->
-	{% endfor %}
-				
-						
 				<div class="clearfix"></div>
 			</div>
 		</div>
 	</div>
+				
+
+	<!--product-starts-->
+				<div class="container">
+    <div class="row">
+        {% for i in products %}
+		{% if product.id != i.id%}
+            <div class="col-md-3">
+                <div class="product">
+                    <a href="{% url 'detail' i.id %}" class="mask">
+                        <img class="img-responsive zoom-img" src="{{ i.baner_image.url }}" alt="{{ i.name }}" />
+                    </a>
+                    <div class="product-info" s>
+                        <h3>{{ i.name }}</h3>
+                        <p>{{ i.description }}</p>
+                        {% if i.currency == 1 %}
+                            <h4>
+                                <a class="item_add" href="{% url 'add_to_cart' i.id %}"><i></i></a>
+                                <span class="item_price">{{ i.price }} Dollar</span>
+                            </h4>
+                        {% else %}
+                            <h4>
+                                <a class="item_add" href="{% url 'carts' %}"><i></i></a>
+                                <span class="item_price">{{ i.price }} So'm</span>
+                            </h4>
+                        {% endif %}
+                        <!-- Add more product details or buttons here -->
+                    </div>
+                </div>
+            </div>
+			{% endif%}
+        {% endfor %}
+    </div>
+</div>
+	<!--product-end-->
+
+				
+						
+	
 				
 
 		{% endblock %}

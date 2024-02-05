@@ -1,8 +1,9 @@
+from django.shortcuts import get_object_or_404
 from django.shortcuts import render,redirect
-
+from django.contrib.auth.decorators import login_required
 
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate,login
+from django.contrib.auth import authenticate, login as auth_login
 from .models import Card, CardProduct, Category, Product, ProductImage, ProductReview, WishList
 
 
@@ -14,7 +15,8 @@ def main(request):
    product=Product.objects.all() 
    productimage=ProductImage.objects.all() 
    productreview=ProductReview.objects.all() 
-   wishList=WishList.objects.all() 
+   wishList=WishList.objects.all()
+   productreview=ProductReview.objects.all()
 
    context={
       'card':card,
@@ -23,7 +25,11 @@ def main(request):
       'product':product,
       'productimage':productimage,
       'productreview':productreview,
-      'wishList':wishList
+      'wishList':wishList,
+      'productreview':productreview ,
+      'user': request.user
+        
+      
    }
    
    return render(request, 'asosiy/index.html', context)
@@ -33,7 +39,7 @@ def main(request):
 
 def cards(request):
     cards = Card.objects.all()
-    return render(request, 'asosiy/index.html', {'cards': cards})
+    return render(request, 'asosiy/index.html', {'cards': cards, 'user':request.user})
 
 
 def card_product(request):
@@ -55,17 +61,25 @@ def products(request):
 
 #vazivaga
 
-def detail(request,id  ):
-    products = Product.objects.all()
-    product = Product.objects.get(id=id)
-    images=ProductImage.objects.all()
-    context={
-        'products':products,
-        'product':product,
-        'images':images
 
+def detail(request, id):
+    products = Product.objects.all()
+    product = get_object_or_404(Product, id=id)
+    images = ProductImage.objects.all()
+    category_id = product.category.id if product.category else None
+    
+    recomendation = Product.objects.filter(category_id=category_id).exclude(id=product.id)[:3]
+
+    context = {
+        'products': products,
+        'product': product,
+        'images': images,
+        'range': range(int(product.review)),
+        'recomendation': recomendation
     }
+
     return render(request, 'asosiy/single.html', context)
+
 
 
 
@@ -88,31 +102,75 @@ def wishlist(request):
 
 
 
+
+
+from django.contrib.auth import authenticate, login as auth_login
+
+
 def login(request):
     if request.method == 'POST':
-
-        email = request.POST['email']
+        username = request.POST['username']
         password = request.POST['password']
 
-        try:
-       
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            auth_login(request, user)  
+            return redirect('main')
+        else:
+            return render(request, 'asosiy/account.html', {'error_message': 'Invalid email or password'})
+
+    return render(request, 'asosiy/login/account.html')
+
+
+
+
+
+
+
+
+
+
+
+
+
+def register(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        password_confirmation = request.POST.get('password_confirmation')
+
+        if password == password_confirmation:
             user = User.objects.create_user(username=username, password=password)
+            return redirect('main')
+        else:
+            return render(request, 'asosiy/login/register.html', {'error_message': 'Passwords do not match'})
+    
+    return render(request, 'asosiy/login/register.html')
 
 
-            return redirect('asosiy/index.html')
 
-        except Exception as e:
-            
-            return render(request, 'asosiy/account.html', {'error_message': str(e)})
-
-   
-    return render(request, 'asosiy/account.html')
-
+    
 
 
 
 
 
+@login_required
+def edit(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        password_confirmation = request.POST['password_confirmation']
+        user = request.user
+        if password == password_confirmation:
+            user.username = username
+            user.set_password(password)
+            user.save()
+            return redirect('register')  
+        
+
+    return render(request, 'asosiy/login/edit.html',{'user':request.user})
 
 #dashboard
 
@@ -173,58 +231,69 @@ def product(request):
 
 
 def product_create(request):
-    if request.method=='POST':
-        
-        name=request.POST['name']
-        description=request.POST['description']
-        quantity=request.POST['quantity']
-        price=request.POST['price']
-        currency=request.POST['currency']
-        baner_image= request.FILES['image']
-        category_id=request.POST['category_id']
-
-        images=request.FILES.getlist('images')
-        product=Product.objects.create(
+    category = Category.objects.all()
+    context = {
+        'category':category
+    }
+    if request.method == "POST":
+        name = request.POST['name']
+        description = request.POST['description']
+        quantity = request.POST['quantity']
+        price = request.POST['price']
+        currency = request.POST['currency']
+        baner_image = request.FILES['image']
+        category_id = request.POST['category_id']
+        images = request.FILES.getlist('images')
+        product = Product.objects.create(
             name=name,
-            description=description,
+            description = description,
             quantity=quantity,
             price=price,
             currency=currency,
             baner_image=baner_image,
             category_id=category_id
         )
-        
         for image in images:
             ProductImage.objects.create(
                 image=image,
                 product=product
             )
-        return redirect('product')
-        
-    return render(request,'dashboard/product/create.html',{'category':Category.objects.all()})
+            print(images)
+    return render(request, 'dashboard/product/create.html', context)
 
 
 def product_update(request, id):
     product = Product.objects.get(id=id)
+    
+    # Eski rasmi saqlab qolish
+    old_banner_image = product.baner_image
+    
     if request.method == 'POST':
         product.name = request.POST['name']
         product.description = request.POST['description']
-        product.quantity = request.POST['quantity']
+        
+        # Quantity maydoni uchun qiymatni tekshirib chiqish
+        quantity = request.POST.get('quantity', '')
+        product.quantity = int(quantity) if quantity.isdigit() and quantity != '' else 0
+
         product.currency = request.POST['currency']
         product.discount_price = request.POST['discount_price']
-        product.baner_image = request.FILES['image']
-        product.category_id = request.POST['category_id']
-        
-        # Yangi tasvirlarni olish
         new_images = request.FILES.getlist('images')
-        
-        # ProductImage instanslarini yaratish
         for new_image in new_images:
             ProductImage.objects.create(
                 image=new_image,
                 product=product
             )
+        old_images = ProductImage.objects.filter(product=product)
+        for old_image in old_images:
+            old_image.delete()
+        if 'image' in request.FILES:
+            product.baner_image = request.FILES['image']
+        else:
+            product.baner_image = old_banner_image
 
+        product.category_id = request.POST['category_id']
+        
         product.save()
 
         return redirect('product')
@@ -237,7 +306,6 @@ def product_update(request, id):
     }
 
     return render(request, 'dashboard/product/update.html', context)
-
 
 
 def product_delete(request,id):
@@ -281,7 +349,6 @@ def cart_detail_delete(request):
 from django.shortcuts import get_object_or_404
 
 def add_to_cart(request, id):
-    # Get the specific product based on the id parameter
     product = get_object_or_404(Product, id=id)
 
     user = request.user
@@ -290,16 +357,19 @@ def add_to_cart(request, id):
     if not active_card:
         active_card = Card.objects.create(user=user)
 
-    # Check if the product is already in the card
+
     existing_product = CardProduct.objects.filter(card=active_card, product=product).first()
 
     if existing_product:
-        # If the product is already in the card, increment the quantity
         existing_product.quantity += 1
         existing_product.save()
     else:
-        # If the product is not in the card, create a new CardProduct
         CardProduct.objects.create(card=active_card, product=product, quantity=1)
-
     return redirect('carts')
+
+
+
+
+
+
 
