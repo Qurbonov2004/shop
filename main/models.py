@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from functools import reduce
+from django.db.models import Sum
 
 class Category(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -57,6 +58,10 @@ class ProductImage(models.Model):
     image = models.ImageField(upload_to='products/')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
 
+    def __str__(self):
+
+        return self.product.name
+
 
 class WishList(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -75,11 +80,7 @@ class Card(models.Model):
 
     @property
     def quantity(self):
-        quantity = 0
-        products = CardProduct.objects.filter(product_id = self.id)
-        for i in products:
-            quantity +=i.quantity
-        return quantity
+        return CardProduct.objects.filter(card=self).aggregate(Sum('quantity'))['quantity__sum'] 
 
     @property
     def total_price(self):
@@ -93,14 +94,21 @@ class CardProduct(models.Model):
     card = models.ForeignKey(Card, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
+
+
     
     @property
     def price(self):
-        if self.product.is_discount:
-            result = self.product.discount_price * self.quantity
-        else:
-            result = self.product.price * self.quantity
+        # print(self.product.is_discount)
+        # if self.product.is_discount :
+        #     result = self.product.discount_price * self.quantity
+        # else:
+        result = self.product.price * self.quantity
         return result
+    
+
+
+
     
 
 
