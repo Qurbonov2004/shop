@@ -41,8 +41,6 @@
                         <h2>{{product.name}}</h2>
                         {% if is_saved %}
                         <a href="{% url 'main:delete_wish' %}?id={{is_saved}}">
-							
-
 							<i class="fa-solid fa-heart" style="font-size: 25px; color: crimson;" ></i>
                         </a>
                         {% else %}

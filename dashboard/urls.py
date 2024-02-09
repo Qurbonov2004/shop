@@ -11,4 +11,12 @@ urlpatterns=[
     path('product/create',product_create,name='product_create'),
     path('product/delete/<int:id>/',product_delete,name='product_delete'),
     path('product/update/<int:id>/',product_update,name='product_update'),
+    path('enter/create',create_enter,name='create_enter'),
+    path('enter/update/<int:id>/',update_enter,name='update_enter'),
+    path('create/delete/<int:id>/',delete_enter,name='delete_enter'),
+    path('enter/list',list_enter,name='list_enter'),
+    path('product/write',write,name='write'),
+    path('product/enter_write',enter_write,name='enter_write'),
+    path('product/expenditure/',expenditure,name='expenditure'),
+    path('product/expenditure_excel',expenditure_excel,name='expenditure_excel'),
 ]

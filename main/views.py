@@ -14,12 +14,13 @@ def index(request):
 
     # WishList uchun is_saved qiymati olish
     is_saved = None
-    if request.user.is_authenticated:  # Foydalanuvchining tizimga kirganligini tekshirish
-        objects = WishList.objects.filter(user=request.user, product__in=product)
-        if objects:
-            is_saved = objects.first().id
-        else:
-            is_saved = False
+    # if request.user.is_authenticated:  # Foydalanuvchining tizimga kirganligini tekshirish
+    #     objects = WishList.objects.filter(user=request.user)
+    #     if objects.product.id==product.id:
+    #         is_saved = objects.first().id
+    #     else:
+    #         is_saved = False
+
 
     context = {
         'card': card,
@@ -196,21 +197,19 @@ def buy_cart(request, id):
         product=cart_product.product
         product.quantity-=cart_product.quantity
         product.save()
-
     cart.is_active = False
     cart.save()
     return redirect('main:carts')
 
 
-def create_wishlist(request):
-    product_id = request.GET.get('product_id')
-    if product_id:  # product_id kiritilgan bo'lsa
-        WishList.objects.create(
-            user=request.user,
-            product_id=product_id
-        )
-    return redirect('main:index')
 
+def create_wishlist(request):
+    WishList.objects.create(
+        user=request.user,
+        product_id=request.GET['product_id']
+    )
+
+    return redirect('main:index')
 
 
 def list_wishlist(request):

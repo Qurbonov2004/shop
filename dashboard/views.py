@@ -1,5 +1,9 @@
 from django.shortcuts import render,redirect
-from main.models import Card, CardProduct, Category, Product, ProductImage, ProductReview, WishList
+from main.models import  Category, Product, ProductImage,EnterProduct,Card,CardProduct
+from django.http import HttpResponse
+import pandas as pd
+from collections import defaultdict
+
 
 #dashboard
 
@@ -142,5 +146,141 @@ def product_delete(request,id):
     product.delete()
 
     return redirect('product')
+
+
+
+
+#entrerproduct
+def list_enter(request):
+    enters = EnterProduct.objects.all()
+    context = {'enters':enters}
+    return render(request, 'dashboard/enter/list.html', context)
+
+
+
+def create_enter(request):
+    if request.method == 'POST':
+        product_id = request.POST['product_id']
+        quantity = int(request.POST['quantity'])
+        EnterProduct.objects.create(
+            product_id=product_id,
+            quantity=quantity
+        )
+        return redirect('list_enter')
+    return render(request, 'dashboard/enter/create.html', {'products':Product.objects.all()})
+
+
+def update_enter(request, id):
+    if request.method == 'POST':
+        quantity = int(request.POST['quantity'])
+        enter = EnterProduct.objects.get(id=id)
+        enter.quantity = quantity
+        enter.save()
+    return redirect('list_enter')
+
+
+def delete_enter(request, id):
+    EnterProduct.objects.get(id=id).delete()
+
+    return redirect('list_enter')
+
+
+
+
+
+
+
+
+
+
+
+
+def write(request):
+    products = Product.objects.all()
+    data = {
+        'Name': [product.name for product in products],
+        'Price': [product.price for product in products],
+        'Quantity': [product.quantity for product in products],
+    }
+    df = pd.DataFrame(data)
+    excel_file_path = 'products.xlsx'
+    df.to_excel(excel_file_path, sheet_name='Products', index=False)
+    with open(excel_file_path, 'rb') as excel_data:
+        content = excel_data.read()
+
+    response = HttpResponse(content, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=products.xlsx'
+
+    return response
+
+
+
+
+
+def enter_write(request):
+    enters = EnterProduct.objects.all()
+
+    data = {
+        'Maxsulot nomi': [enter.product.name for enter in enters],
+        'Maxsulot soni': [enter.quantity for enter in enters],
+        'Maxsulot nomi': [enter.product_name for enter in enters],
+        'Maxsulot qo\'shilgan sana': [enter.created_at.replace(tzinfo=None).strftime('%Y-%m-%d %H:%M:%S') for enter in enters],
+    }
+
+    result = pd.DataFrame(data)
+    path = 'enter.xlsx'
+    result.to_excel(path, sheet_name="Enter", index=False)
+
+    with open(path, 'rb') as excel_data:
+        content = excel_data.read()
+
+    response = HttpResponse(content, content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response['Content-Disposition'] = 'attachment; filename=enter.xlsx'
+    
+    # Qator uzunligi uchun
+    response['Maxsulot qator uzunligi'] = f'{max(map(len, data.values())) * 10}px' if data else '0px'
+    return response
+
+
+
+
+
+def expenditure(request):
+    cartproducts = CardProduct.objects.filter(card__is_active=False)
+    
+    dict1 = defaultdict(int)
+    for cartproduct in cartproducts:
+        dict1[cartproduct.product.name] += cartproduct.quantity
+    result_list = [{'name': name, 'total_quantity': total_quantity} for name, total_quantity in dict1.items()]
+
+    return render(request, 'dashboard/chiqim/list.html', {'result_list': result_list})
+
+def expenditure_excel(request):
+    carts = Card.objects.filter(is_active=False)
+    cartproducts = CardProduct.objects.filter(card=carts)
+
+    data = {
+        "Number": [cartproduct.id for cartproduct in cartproducts],
+        "Maxsulot nomi": [cartproduct.product.name for cartproduct in cartproducts],
+        "Number": [cartproduct.quantity for cartproduct in cartproducts]
+    }
+
+    result = pd.DataFrame(data)
+    path = 'chiqim.xlsx'  # Fayl nomini o'zgartirish
+    result.to_excel(path, sheet_name='Chiqim', index=False)
+
+    with open(path, 'rb') as chiqim:
+        content = chiqim.read()
+
+    response = HttpResponse(content, content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response['Content-Disposition'] = 'attachment; filename=chiqim.xlsx'  # Fayl nomini o'zgartirish
+
+    return response
+
+
+
+
+
+
 
 
