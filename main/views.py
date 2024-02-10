@@ -10,7 +10,8 @@ def index(request):
     category = Category.objects.all() 
     product = Product.objects.all() 
     productimage = ProductImage.objects.all() 
-    productreview = ProductReview.objects.all() 
+    productreview = ProductReview.objects.all()
+    user_id = request.user.id 
 
     # WishList uchun is_saved qiymati olish
     is_saved = None
@@ -32,6 +33,7 @@ def index(request):
         'productreview': productreview,
         'user': request.user,
         'is_saved': is_saved,
+        'user_id':user_id
     }
 
     return render(request, 'index.html', context)
