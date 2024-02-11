@@ -1,0 +1,109 @@
+{% extends 'dashboard/base.html' %}
+{% block content %}
+
+            <!--app-content open-->
+            <div class="main-content app-content mt-0">
+                <div class="side-app">
+
+                    <!-- CONTAINER -->
+                    <div class="main-container container-fluid">
+
+                        <!-- PAGE-HEADER -->
+                        <div class="page-header">
+                            <h1 class="page-title">Productlar</h1>
+                            <a href="{% url 'write' %}">
+                            <button class="btn btn-primary" type="submit">Excel generate</button></a>
+                            
+                        </div>
+                        <!-- PAGE-HEADER END -->
+                        
+                        <!-- Row -->
+                        <div class="row">
+                            <div class="col-2"></div>
+                            <div class="col-xl-9">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h3 class="card-title">Productlar ro`yxati</h3>
+                                        <button class="btn btn-primary bg-primary-gradient mt-3" data-bs-toggle="modal" data-bs-target="#smallmodal" style="border-top-left-radius: 0; border-top-right-radius: 0;">Filterlash</button>
+                                    </div>
+                                    
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table text-nowrap text-md-nowrap mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>№</th>
+                                                        <th>Name</th>
+                                                        <th>Quantity</th>
+                                                        <th>Price</th>
+                                                        <th>Pul birligi</th>
+                                                        <th>O`zgartirish</th>
+                                                        <th>O`chirish</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for product in products %}
+                                                    <tr>
+                                                        <td>{{ forloop.counter }}</td>
+                                                        <td>{{ product.name }}</td>
+                                                        <td>{{ product.quantity }}</td>
+                                                        <td>{{ product.price }}</td>
+                                                        {% if product.currency == 1 %}
+                                                            <td>$</td>
+                                                        {% else %}
+                                                            <td>So'm</td>
+                                                        {% endif %}
+                                                        <td><a href="{% url 'product_update' product.id %}" class="btn btn-icon btn-success" style="color: white;"><i class="fa fa-arrow-right"></i></a></td>
+                                                        <td><a href="{% url 'product_delete' product.id %}" class="btn btn-icon btn-danger"><i class="fe fe-trash"></i></a></td>
+                                                    </tr>
+                                                {% endfor %}
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End Row -->
+
+                    </div>
+                    <!-- CONTAINER CLOSED -->
+
+                </div>
+            </div>
+            <!--app-content close-->
+
+        </div>
+
+        <div class="modal  fade" id="smallmodal" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                    <form method="get">
+                        {% csrf_token %}
+                        <div class="modal-header">
+                            <h5 class="modal-title">Filterlash</h5>
+                            <button class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">×</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <label for="name" style="margin-right: 30px;">Nomi</label>
+                            <input type="text" name="name" id="name" >
+                            <label for="quantity" style="margin-right: 15px;">Miqdori</label>
+                            <input type="number" name="quantity" id="quantity" >
+                            <label for="price" style="margin-right: 29px;">Narxi</label>
+                            <input type="number" name="price" id="price" >
+                        </div>
+                        <div class="modal-footer">
+                            
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+
+
+{% endblock%}

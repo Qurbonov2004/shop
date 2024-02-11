@@ -118,17 +118,19 @@ class EnterProduct(models.Model):
         return f"{self.quantity}"
     
     def save(self, *args, **kwargs):
-        self.product_name = self.product.name
-        if self.pk:
-            enter = EnterProduct.objects.get(pk=self.pk)
-            product = enter.product # None/Product
-            product.quantity -= enter.quantity
-            product.quantity += self.quantity
-            product.save()
-        else:
-            self.product.quantity += self.quantity
-            self.product.save()
+        if self.product:
+            self.product_name = self.product.name
+            if self.pk:
+                enter = EnterProduct.objects.get(pk=self.pk)
+                product = enter.product
+                product.quantity -= enter.quantity
+                product.quantity += self.quantity
+                product.save()
+            else:
+                self.product.quantity += self.quantity
+                self.product.save()
         super(EnterProduct, self).save(*args, **kwargs)
+
 
 
 

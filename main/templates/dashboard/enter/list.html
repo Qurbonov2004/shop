@@ -12,6 +12,12 @@
                     <h1 class="page-title">Yangiliklar</h1>
                     <a href="{% url 'enter_write' %}">
                     <button class="btn btn-primary">Excel generate</button></a>
+                    <form method="post" action="{% url 'upload_excel' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="file" class="fileupload" name="excel">
+                        <button type="submit" class="btn btn-success"> Qo'shish </button>
+                    </form>
+                    
                 </div>
                 <!-- PAGE-HEADER END -->
                 

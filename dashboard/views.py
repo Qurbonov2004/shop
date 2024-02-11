@@ -3,6 +3,7 @@ from main.models import  Category, Product, ProductImage,EnterProduct,Card,CardP
 from django.http import HttpResponse
 import pandas as pd
 from collections import defaultdict
+from django.db.models import Q
 
 
 #dashboard
@@ -58,9 +59,54 @@ def category_delete(request,id):
 
 
 def product(request):
-    products=Product.objects.all()
 
-    return render(request,'dashboard/product/list.html',{'products':products})
+
+
+    # name = request.GET.get('name')
+    # quantity = request.GET.get('quantity')
+    # price=request.GET.get('price')
+    # if name and quantity and price :
+    #     products = Product.objects.filter(
+    #         name=name,
+    #         quantity=quantity,
+    #         price=price  
+
+    #     )
+        
+    # else:
+    #     products = Product.objects.all()
+    #     print(products)
+
+
+
+
+    name = request.GET.get('name')
+    quantity = request.GET.get('quantity')
+    price = request.GET.get('price')
+
+    # Create an empty Q object to build the dynamic filter
+    filter_conditions = Q()
+
+    if name:
+        filter_conditions &= Q(name__icontains=name)
+
+    if quantity:
+        filter_conditions &= Q(quantity=quantity)
+
+    if price:
+        filter_conditions &= Q(price=price)
+
+    # Apply the dynamic filter
+    if filter_conditions:
+        products = Product.objects.filter(filter_conditions)
+    else:
+        products = Product.objects.all()
+
+    return render(request, 'dashboard/product/list.html', {'products': products})
+
+
+
+
 
 
 def product_create(request):
@@ -201,6 +247,8 @@ def write(request):
         'Name': [product.name for product in products],
         'Price': [product.price for product in products],
         'Quantity': [product.quantity for product in products],
+        'Price': [product.price for product in products],
+        'P/B': [product.currency for product in products],
     }
     df = pd.DataFrame(data)
     excel_file_path = 'products.xlsx'
@@ -257,8 +305,7 @@ def expenditure(request):
 
 def expenditure_excel(request):
     carts = Card.objects.filter(is_active=False)
-    cartproducts = CardProduct.objects.filter(card=carts)
-
+    cartproducts = CardProduct.objects.filter(card__in=carts)
     data = {
         "Number": [cartproduct.id for cartproduct in cartproducts],
         "Maxsulot nomi": [cartproduct.product.name for cartproduct in cartproducts],
@@ -276,6 +323,67 @@ def expenditure_excel(request):
     response['Content-Disposition'] = 'attachment; filename=chiqim.xlsx'  # Fayl nomini o'zgartirish
 
     return response
+
+
+
+
+
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+
+
+def upload_excel(request):
+    if request.method == 'POST' and request.FILES['excel']:
+        excel_file = request.FILES['excel']
+        file = request.FILES['excel'].name
+
+        with open(file, 'wb+') as destination:
+            for chunk in excel_file.chunks():
+                destination.write(chunk)
+
+        excel_data = pd.read_excel(file)
+        for index, row in excel_data.iterrows():
+            quantity = row['Maxsulot soni']
+            product_name = row['Maxsulot nomi']
+            created_at = row['Maxsulot qo\'shilgan sana']
+            enter_product = EnterProduct.objects.create(
+                quantity=quantity,
+                product_name=product_name,
+                created_at=created_at
+            )
+
+        return redirect('list_enter')
+    else:
+        return redirect('upload_excel')
+    
+
+
+
+
+
+
+def list_enter(request):
+    enters = EnterProduct.objects.all()
+
+    # Fetching data from the expenditure view
+    cartproducts = CardProduct.objects.filter(card__is_active=False)
+    dict1 = defaultdict(int)
+    for cartproduct in cartproducts:
+        dict1[cartproduct.product.name] += cartproduct.quantity
+    result_list = [{'name': name, 'total_quantity': total_quantity} for name, total_quantity in dict1.items()]
+
+    # Combining data into a single list
+    combined_list = [{'type': 'enter', 'data': enter} for enter in enters] + [{'type': 'expenditure', 'data': result} for result in result_list]
+
+    return render(request, 'dashboard/list.html', {'combined_list': combined_list})
+
+
+
+        
+
 
 
 
