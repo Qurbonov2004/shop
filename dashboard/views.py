@@ -1,9 +1,17 @@
 from django.shortcuts import render,redirect
-from main.models import  Category, Product, ProductImage,EnterProduct,Card,CardProduct
 from django.http import HttpResponse
+from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+from django.core.exceptions import FieldError
+from . funcs import search_with_fields, pagenator_page,filter_product
+
 import pandas as pd
 from collections import defaultdict
-from django.db.models import Q
+
+from main.models import  Category, Product, ProductImage,EnterProduct,Card,CardProduct
+
 
 
 #dashboard
@@ -24,7 +32,8 @@ def dashboard(request):
 
 def category_list(request):
     categoriess=Category.objects.all()
-    return render(request,'dashboard/category/list.html',{'categoriess':categoriess})
+    paginator={'categoriess':pagenator_page(categoriess,1,request)}
+    return render(request,'dashboard/category/list.html',{'categoriess':paginator})
 
 
 def category_create(request):
@@ -59,9 +68,16 @@ def category_delete(request,id):
 
 
 def product(request):
+    #1-yo'l
+    if request.method=='GET':
+        result=filter_product(request)
+        products=Product.objects.filter(**result)
+        paginator={'products':pagenator_page(products,1,request)}
 
 
 
+#2-yo'l
+    
     # name = request.GET.get('name')
     # quantity = request.GET.get('quantity')
     # price=request.GET.get('price')
@@ -79,28 +95,29 @@ def product(request):
 
 
 
+#3-yo'l
+    
+    # name = request.GET.get('name')
+    # quantity = request.GET.get('quantity')
+    # price = request.GET.get('price')
 
-    name = request.GET.get('name')
-    quantity = request.GET.get('quantity')
-    price = request.GET.get('price')
+    # # Create an empty Q object to build the dynamic filter
+    # filter_conditions = Q()
 
-    # Create an empty Q object to build the dynamic filter
-    filter_conditions = Q()
+    # if name:
+    #     filter_conditions &= Q(name__icontains=name)
 
-    if name:
-        filter_conditions &= Q(name__icontains=name)
+    # if quantity:
+    #     filter_conditions &= Q(quantity=quantity)
 
-    if quantity:
-        filter_conditions &= Q(quantity=quantity)
+    # if price:
+    #     filter_conditions &= Q(price=price)
 
-    if price:
-        filter_conditions &= Q(price=price)
-
-    # Apply the dynamic filter
-    if filter_conditions:
-        products = Product.objects.filter(filter_conditions)
-    else:
-        products = Product.objects.all()
+    # # Apply the dynamic filter
+    # if filter_conditions:
+    #     products = Product.objects.filter(filter_conditions)
+    # else:
+    #     products = Product.objects.all()
 
     return render(request, 'dashboard/product/list.html', {'products': products})
 
@@ -198,9 +215,14 @@ def product_delete(request,id):
 
 #entrerproduct
 def list_enter(request):
-    enters = EnterProduct.objects.all()
-    context = {'enters':enters}
+    result = search_with_fields(request)
+    enters=EnterProduct.objects.filter(**result)
+    paginator=Paginator(enters,2)
+
+    context = {'enters': paginator.get_page(1)}
     return render(request, 'dashboard/enter/list.html', context)
+
+
 
 
 
@@ -329,9 +351,6 @@ def expenditure_excel(request):
 
 
 
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-
 @csrf_exempt
 
 
@@ -378,7 +397,7 @@ def list_enter(request):
     # Combining data into a single list
     combined_list = [{'type': 'enter', 'data': enter} for enter in enters] + [{'type': 'expenditure', 'data': result} for result in result_list]
 
-    return render(request, 'dashboard/list.html', {'combined_list': combined_list})
+    return render(request, 'dashboard/enter/list.html', {'combined_list': combined_list})
 
 
 

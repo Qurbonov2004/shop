@@ -11,10 +11,23 @@ def index(request):
     product = Product.objects.all() 
     productimage = ProductImage.objects.all() 
     productreview = ProductReview.objects.all()
-    user_id = request.user.id 
+    
+    user_id = request.user.id
+    if request.user.is_authenticated:
+        # Assuming you have a specific product instance, replace 'specific_product' with the actual product instance
+        specific_product = Product.objects.get(pk=1)  # Replace '1' with the actual product ID
+        objects = WishList.objects.filter(user=request.user, product=specific_product)
+        
+        is_saved = None
+        if objects:
+            is_saved = objects.first().id
+        else:
+            is_saved = False
 
-    # WishList uchun is_saved qiymati olish
+
+
     is_saved = None
+    # WishList uchun is_saved qiymati olish
     # if request.user.is_authenticated:  # Foydalanuvchining tizimga kirganligini tekshirish
     #     objects = WishList.objects.filter(user=request.user)
     #     if objects.product.id==product.id:
@@ -78,27 +91,20 @@ def detail(request, id):
     else:
         is_saved = False
 
+    user_review = ProductReview.objects.filter(user=request.user, product=product).first()
+    baho = user_review.mark if user_review else 0
 
-    try: 
-        a = int(request.POST.get('baho'))      
-    except (TypeError, ValueError):
-        a = 0
 
-    if a > 5:
-        baho = 5
-    else:
-        baho = a
-        ProductReview.objects.create(
-        user=request.user,
-        product=product,
-        mark=baho
-    )
+    
+
+
+    
 
     context = {
         'products': products,
         'product': product,
         'images': images,
-        'range': range(baho),
+        'range': range(baho+1),
         'recomendation': recomendation,
         'is_saved':is_saved
     }
@@ -218,12 +224,13 @@ def list_wishlist(request):
     objects=WishList.objects.filter(user=request.user)
     return render(request, 'wish/list.html', {'objects':objects})
 
+from django.shortcuts import get_object_or_404, redirect
 
-
-def delete_wish(request):
-    wish= WishList.objects.get(id=request.GET['id'])
+def delete_wish(request, id):
+    user = request.user
+    wish = get_object_or_404(WishList, product_id=id, user=user)
     wish.delete()
-    return redirect('main:list_wishlist')
+    return redirect('main:detail')
 
 
 

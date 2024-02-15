@@ -13,6 +13,14 @@
                             <h1 class="page-title">Productlar</h1>
                             <a href="{% url 'write' %}">
                             <button class="btn btn-primary" type="submit">Excel generate</button></a>
+                            <form  method="get" >
+                                <input type="text" name="name" placeholder="nomi">
+                                <input type="number" name="quantity_min" placeholder="soni ...tadan">
+                                <input type="number" name="quantity_max" placeholder="soni ...tagacha">
+                                <input type="number" name="price_min" placeholder="narxi ...dan ">
+                                <input type="number" name="price_max" placeholder="narxi ...gacha">
+                                <button type="submit" class="btn btn-primary">filter</button>
+                            </form>
                             
                         </div>
                         <!-- PAGE-HEADER END -->

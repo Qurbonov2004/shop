@@ -21,9 +21,9 @@
 							
 						</div>
 						<!-- FlexSlider -->
-						<script src="{% static 'asosiy/js/imagezoom.js' %}"></script>
-						<script defer src="{% static 'asosiy/js/jquery.flexslider.js' %}"></script>
-						<link rel="stylesheet" href="{% static 'asosiy/css/flexslider.css' %}" type="text/css" media="screen" />
+						<script src="{% static 'js/imagezoom.js' %}"></script>
+						<script defer src="{% static 'js/jquery.flexslider.js' %}"></script>
+						<link rel="stylesheet" href="{% static 'css/flexslider.css' %}" type="text/css" media="screen" />
 
 						<script>
 						// Can also be used with $(document).ready()
@@ -41,7 +41,7 @@
                         <h2>{{product.name}}</h2>
                         {% if is_saved %}
                         <a href="{% url 'main:delete_wish' %}?id={{is_saved}}">
-							<i class="fa-solid fa-heart" style="font-size: 25px; color: crimson;" ></i>
+							<i class="fa-solid fa-heart" style="font-size: 20px; color: crimson;" ></i>
                         </a>
                         {% else %}
                         <a href="{% url 'main:create_wishlist' %}?product_id={{product.id}}">
@@ -51,16 +51,15 @@
                     </div>
 					<div class="single-para simpleCart_shelfItem">
 					<h2>{{product.name}}</h2>
-						<div class="star-on">
-							<ul class="star-footer">
-								{% for i in range %}
-									<li><a href="#"><i> </i></a></li>
-									{% endfor %}
-								</ul>
-							
-							
-						<div class="clearfix"> </div>
-						</div>
+					<div class="rating-stars">
+						<input type="radio" name="rating" id="rs0" checked><label for="rs0"></label>
+						<input type="radio" name="rating" id="rs1"><label for="rs1"></label>
+						<input type="radio" name="rating" id="rs2"><label for="rs2"></label>
+						<input type="radio" name="rating" id="rs3"><label for="rs3"></label>
+						<input type="radio" name="rating" id="rs4"><label for="rs4"></label>
+						<input type="radio" name="rating" id="rs5"><label for="rs5"></label>
+						<span class="rating-counter"></span>
+					</div>	
 						
 						<h5 class="item_price">{{product.price}}</h5>
 						<p>{{product.description}}</p>							
