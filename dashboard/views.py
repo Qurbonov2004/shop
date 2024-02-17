@@ -30,10 +30,14 @@ def dashboard(request):
     return render(request,'dashboard/index.html',context)
 
 
+
+
 def category_list(request):
-    categoriess=Category.objects.all()
-    paginator={'categoriess':pagenator_page(categoriess,1,request)}
-    return render(request,'dashboard/category/list.html',{'categoriess':paginator})
+    if request.method=='GET':
+        categoriess=Category.objects.all()
+        categoriess=pagenator_page(categoriess,2,request)
+        return render(request,'dashboard/category/list.html',{'categoriess':categoriess})
+
 
 
 def category_create(request):
@@ -65,14 +69,26 @@ def category_delete(request,id):
 
 
 
+def list_enter(request):
+    if request.method == 'GET':
+        result = search_with_fields(request)
+        enters=EnterProduct.objects.all()
+         
 
-
+        context = {'enters': pagenator_page(enters,2,request)}
+        return render(request, 'dashboard/enter/list.html', context)
 def product(request):
-    #1-yo'l
-    if request.method=='GET':
-        result=filter_product(request)
-        products=Product.objects.filter(**result)
-        paginator={'products':pagenator_page(products,1,request)}
+    # 1st approach
+    if request.method == 'GET':
+        result = filter_product(request)
+        products_all = Product.objects.all()
+        products_filter = Product.objects.filter(**result) if result else None
+
+        if products_filter:
+            products = pagenator_page(products_filter, 1, request)
+        else:
+            products = pagenator_page(products_all, 1, request)
+
 
 
 
@@ -155,26 +171,23 @@ def product_create(request):
                 product=product
             )
 
+
     return render(request, 'dashboard/product/create.html', context)
 
 
 def product_update(request, id):
     product = Product.objects.get(id=id)
-    
-    # Eski rasmi saqlab qolish
     old_banner_image = product.baner_image
     
     if request.method == 'POST':
         product.name = request.POST['name']
         product.description = request.POST['description']
-        
-        # Quantity maydoni uchun qiymatni tekshirib chiqish
         quantity = request.POST.get('quantity', '')
         product.quantity = int(quantity) if quantity.isdigit() and quantity != '' else 0
+        new_images = request.FILES.getlist('images')       
+        if  request.POST['discount_price']:
+            product.discount_price = request.POST['discount_price']
 
-        product.currency = request.POST['currency']
-        product.discount_price = request.POST['discount_price']
-        new_images = request.FILES.getlist('images')
         for new_image in new_images:
             ProductImage.objects.create(
                 image=new_image,
@@ -191,6 +204,7 @@ def product_update(request, id):
         product.category_id = request.POST['category_id']
         
         product.save()
+        
 
         return redirect('product')
     
@@ -215,12 +229,13 @@ def product_delete(request,id):
 
 #entrerproduct
 def list_enter(request):
-    result = search_with_fields(request)
-    enters=EnterProduct.objects.filter(**result)
-    paginator=Paginator(enters,2)
+    if request.method == 'GET':
+        result = search_with_fields(request)
+        enters=EnterProduct.objects.all()
+         
 
-    context = {'enters': paginator.get_page(1)}
-    return render(request, 'dashboard/enter/list.html', context)
+        context = {'enters': pagenator_page(enters,2,request)}
+        return render(request, 'dashboard/enter/list.html', context)
 
 
 
@@ -289,11 +304,11 @@ def write(request):
 
 def enter_write(request):
     enters = EnterProduct.objects.all()
+    print(enters)
 
-    data = {
-        'Maxsulot nomi': [enter.product.name for enter in enters],
+    data = {       
         'Maxsulot soni': [enter.quantity for enter in enters],
-        'Maxsulot nomi': [enter.product_name for enter in enters],
+            'Maxsulot nomi': [enter.product.name if enter.product and enter.product.name else enter.product_name for enter in enters],
         'Maxsulot qo\'shilgan sana': [enter.created_at.replace(tzinfo=None).strftime('%Y-%m-%d %H:%M:%S') for enter in enters],
     }
 
@@ -315,15 +330,18 @@ def enter_write(request):
 
 
 
+
+
 def expenditure(request):
     cartproducts = CardProduct.objects.filter(card__is_active=False)
     
     dict1 = defaultdict(int)
     for cartproduct in cartproducts:
         dict1[cartproduct.product.name] += cartproduct.quantity
-    result_list = [{'name': name, 'total_quantity': total_quantity} for name, total_quantity in dict1.items()]
+    result_list = [{'name': name, 'total_quantity': total_quantity, 'user': cartproduct.card.user} for name, total_quantity in dict1.items()]
 
     return render(request, 'dashboard/chiqim/list.html', {'result_list': result_list})
+
 
 def expenditure_excel(request):
     carts = Card.objects.filter(is_active=False)
@@ -384,20 +402,20 @@ def upload_excel(request):
 
 
 
-def list_enter(request):
-    enters = EnterProduct.objects.all()
+# def list_enter(request):
+#     enters = EnterProduct.objects.all()
 
-    # Fetching data from the expenditure view
-    cartproducts = CardProduct.objects.filter(card__is_active=False)
-    dict1 = defaultdict(int)
-    for cartproduct in cartproducts:
-        dict1[cartproduct.product.name] += cartproduct.quantity
-    result_list = [{'name': name, 'total_quantity': total_quantity} for name, total_quantity in dict1.items()]
+#     # Fetching data from the expenditure view
+#     cartproducts = CardProduct.objects.filter(card__is_active=False)
+#     dict1 = defaultdict(int)
+#     for cartproduct in cartproducts:
+#         dict1[cartproduct.product.name] += cartproduct.quantity
+#     result_list = [{'name': name, 'total_quantity': total_quantity} for name, total_quantity in dict1.items()]
 
-    # Combining data into a single list
-    combined_list = [{'type': 'enter', 'data': enter} for enter in enters] + [{'type': 'expenditure', 'data': result} for result in result_list]
+#     # Combining data into a single list
+#     combined_list = [{'type': 'enter', 'data': enter} for enter in enters] + [{'type': 'expenditure', 'data': result} for result in result_list]
 
-    return render(request, 'dashboard/enter/list.html', {'combined_list': combined_list})
+#     return render(request, 'dashboard/enter/list.html', {'combined_list': combined_list})
 
 
 

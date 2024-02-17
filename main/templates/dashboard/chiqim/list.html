@@ -31,6 +31,7 @@
                                                 <th>№</th>
                                                 <th>Maxsulot nomi</th>
                                                 <th>Soni</th>
+                                                <th>User</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -39,6 +40,7 @@
                                                 <td>{{ forloop.counter }}</td>
                                                 <td>{{ item.name }}</td>
                                                 <td>{{ item.total_quantity }}</td>
+                                                <td>{{ item.user }}</td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>

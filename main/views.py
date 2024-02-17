@@ -78,11 +78,16 @@ def products(request):
 
 
 
+from django.shortcuts import get_object_or_404
+
 def detail(request, id):
     products = Product.objects.all()
     product = get_object_or_404(Product, id=id)
+
+    # Check if the product has a category before accessing its id
+    category_id = product.category.id if product.category else None
+    
     images = ProductImage.objects.filter(product_id=product.id)
-    category_id = product.category.id    
     recomendation = Product.objects.filter(category_id=category_id).exclude(id=product.id)[:3]
     objects = WishList.objects.filter(user=request.user, product=product)
     is_saved = None
@@ -93,23 +98,17 @@ def detail(request, id):
 
     user_review = ProductReview.objects.filter(user=request.user, product=product).first()
     baho = user_review.mark if user_review else 0
-
-
-    
-
-
-    
-
     context = {
         'products': products,
         'product': product,
         'images': images,
         'range': range(baho+1),
         'recomendation': recomendation,
-        'is_saved':is_saved
+        'is_saved': is_saved
     }
 
     return render(request, 'single.html', context)
+
 
 
 

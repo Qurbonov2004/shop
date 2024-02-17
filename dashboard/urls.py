@@ -19,7 +19,7 @@ urlpatterns = [
     path('product/expenditure/', expenditure, name='expenditure'),
     path('product/expenditure_excel/', expenditure_excel, name='expenditure_excel'),
     path('product/upload_excel/', upload_excel, name='upload_excel'),
-    path('product/list_enter/', list_enter, name='list_enter'),
+    # path('product/list_enter/', list_enter, name='list_enter'),
     #enter
     path('enter/create/', create_enter, name='create_enter'),
     path('enter/update/<int:id>/', update_enter, name='update_enter'),

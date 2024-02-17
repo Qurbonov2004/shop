@@ -34,17 +34,19 @@ def filter_product(request):
             elif key=='price_max':
                 key='price__lte'
             result[key]=value
+
+        if 'page' in request.GET:
+            del result['page']
     return result
 
 
-def pagenator_page(queryset, num, page):
-    paginator = Paginator(queryset, num)
-
+def pagenator_page(list, num, request):
+    paginator = Paginator(list, num)
+    pages = request.GET.get('page')
     try:
-        queryset = paginator.page(page)
+        list = paginator.page(pages)
     except PageNotAnInteger:
-        queryset = paginator.page(1)
+        list = paginator.page(1)
     except EmptyPage:
-        queryset = paginator.page(paginator.num_pages)
-
-    return queryset
+        list = paginator.page(paginator.num_pages)
+    return list
